@@ -5,76 +5,113 @@
  * Requires the Arduino PID Library by Brett Beauregard
  ********************************************************/
 
+
 #include <PID_v1.h>
+#include <HIDSerial.h>
 
-double SetpointA, SetpointB, InputA, InputB, OutputA, OutputB;
-float rawA = 0,temp_in_celsiusA = 0,rawB = 0,temp_in_celsiusB = 0, temp_in_kelvin=0, millivolts = 0;
+HIDSerial serial;
+
+//Define Variables we'll be connecting to
+double Setpoint1 = 70;
+double Setpoint2 = 70;
+double Input1, Output1, Input2, Output2;
+float ADC1 = 0, ADC2 = 0, temp1 = 0, temp2=0;
 unsigned long serialTime;
+int led = 0, Probe1 = 1, Probe2 = 0, PWM1 = 6, PWM2 = 5;
+boolean state = LOW;
 
-//Specify the links and initial tuning parameters, P is enough for now.
-PID myPIDa(&InputA, &OutputA, &SetpointA,150,0,0, DIRECT);
-PID myPIDb(&InputB, &OutputB, &SetpointB,150,0,0, DIRECT);
+//Specify the links and initial tuning parameters
+PID myPID1(&Input1, &Output1, &Setpoint1, 80,0,0, DIRECT);
+PID myPID2(&Input2, &Output2, &Setpoint2, 80,0,0, DIRECT);
 
 void setup()
 {
   //initialize the variables we're linked to
-  InputA = analogRead(7);
-  InputB = analogRead(6);
+  pinMode(PWM1, OUTPUT);
+  pinMode(PWM2, OUTPUT);
+  pinMode(led, OUTPUT);
+  digitalWrite(led, HIGH); 
 
-  SetpointA = 95; // Denaturing Temperature
-  SetpointB = 72; // Extension Temperature
-  
-  Serial.begin(9600); 
+  ADC1 = analogRead(Probe1);
+  ADC2 = analogRead(Probe2);  
+
+  serial.begin();
   //turn the PID on
-  myPIDa.SetMode(AUTOMATIC);
-  myPIDb.SetMode(AUTOMATIC);  
+  myPID1.SetMode(AUTOMATIC);
+  myPID2.SetMode(AUTOMATIC);
 }
 
 void loop()
 {
-  rawA = analogRead(7);
-  temp_in_celsiusA = rawA*0.6841  - 395.29;
-  InputA = temp_in_celsiusA;
+  serial.poll();
   
-  rawB = analogRead(6);
-  temp_in_celsiusB = rawB*0.6841  - 395.29;
-  InputB = temp_in_celsiusB;  
-
-  myPIDa.Compute();
-  analogWrite(6,OutputA);
   
-  myPIDb.Compute();
-  analogWrite(3,OutputB);
+  ADC1 = analogRead(Probe1);
+  ADC2 = analogRead(Probe2);
+  
 
+  temp1 = ADC1 * -0.3938 + 248.34; //Calculate these contants from a linear fit with a thermometer
+  temp2 = ADC2 * -0.3938 + 248.34;
+  
+  Input1 = temp1;
+  Input2 = temp2;
+  
+  myPID1.Compute();
+  myPID2.Compute();
+  
+  analogWrite(PWM1,Output1);
+  analogWrite(PWM2,Output2);
+  
   if(millis()>serialTime)
   {
-    //SerialReceive(); used later to set tepmerature from the PC
+    //SerialReceive();
     SerialSend();
-    serialTime+=500;
+    //serial.println("Hello World!");
+    //serial.println(raw);
+    serialTime+=1000;
+    
+    if(state) {
+      state = LOW;
+      digitalWrite(led, LOW);
+    }  
+    else {
+      state = HIGH;
+      digitalWrite(led, HIGH);
+    }
   }
  
 }
 
-// Reports the temperature, and raw ADC data needed to calibrate the sensors.
-void SerialSend() 
+void SerialSend()
 {
-  Serial.print(serialTime);  
-  Serial.print(",");  
-  Serial.print("PID-A, ");
-  Serial.print(SetpointA);  
-  Serial.print(",");
-  Serial.print(rawA);
-  Serial.print(",");
-  Serial.print(temp_in_celsiusA);
-  Serial.print(",");
-  Serial.print(OutputA);
-  Serial.print(",");
-  Serial.print("   PID-B, ");
-  Serial.print(SetpointB);  
-  Serial.print(",");
-  Serial.print(rawB);
-  Serial.print(",");
-  Serial.print(temp_in_celsiusB);
-  Serial.print(",");  
-  Serial.println(OutputB); 
+  serial.print(serialTime/1000);  
+  serial.print(", ");
+  serial.print(ADC1);
+  serial.print(", ");
+  serial.print(ADC2);
+  serial.print(", ");
+  serial.print(temp1);
+  serial.print(", ");  
+  serial.print(temp2);
+  serial.print(", ");
+  serial.print(Output1);
+  serial.print(", ");
+  serial.println(Output2); 
+  
+  
+  
+  /*Print the temperature in Celsius to the serial port
+  Serial.print("Celsius: ");
+  Serial.println(temp_in_celsius);                  
+
+  Print the temperature in Fahrenheit to the serial port
+  Serial.print("Ouput: ");
+  Serial.println(Output);
+  Serial.println();  
+  
+  //Print the temperature in Fahrenheit to the serial port
+  Serial.print("Raw: ");
+  Serial.println(raw);
+  Serial.println(millivolts);  
+  Serial.println();   */
 }
