@@ -35,6 +35,10 @@ void setup() {
   Wire.begin();        // join i2c bus (address optional for master)
   Serial.begin(38400);
   
+  pinMode(HeaterPinA, OUTPUT);
+  pinMode(HeaterPinB, OUTPUT);
+  pinMode(HeaterPinC, OUTPUT);
+  
   HeaterA.SetMode(AUTOMATIC);
   HeaterB.SetMode(AUTOMATIC);
   HeaterC.SetMode(AUTOMATIC);
