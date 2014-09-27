@@ -5,15 +5,14 @@
  * Requires the Arduino PID Library by Brett Beauregard
  ********************************************************/
 
-
 #include <PID_v1.h>
 #include <HIDSerial.h>
 
 HIDSerial serial;
 
 //Define Variables we'll be connecting to
-double Setpoint1 = 70;
-double Setpoint2 = 70;
+double Setpoint1 = 95;
+double Setpoint2 = 72;
 double Input1, Output1, Input2, Output2;
 float ADC1 = 0, ADC2 = 0, temp1 = 0, temp2=0;
 unsigned long serialTime;
@@ -50,8 +49,8 @@ void loop()
   ADC2 = analogRead(Probe2);
   
 
-  temp1 = ADC1 * -0.3938 + 248.34; //Calculate these contants from a linear fit with a thermometer
-  temp2 = ADC2 * -0.3938 + 248.34;
+  temp1 = ADC1 * -0.3059 + 198.39; //Calculate these contants from a linear fit with a thermometer
+  temp2 = ADC2 * -0.3059 + 198.39;
   
   Input1 = temp1;
   Input2 = temp2;
@@ -84,8 +83,6 @@ void loop()
 
 void SerialSend()
 {
-  serial.print(serialTime/1000);  
-  serial.print(", ");
   serial.print(ADC1);
   serial.print(", ");
   serial.print(ADC2);
