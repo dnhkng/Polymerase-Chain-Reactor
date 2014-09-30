@@ -77,6 +77,7 @@ void loop()
       state = HIGH;
       digitalWrite(led, HIGH);
     }
+    delay(30); // reduces ADC interferrence
   }
  
 }
@@ -84,31 +85,14 @@ void loop()
 void SerialSend()
 {
   serial.print(ADC1);
-  serial.print(", ");
+  serial.print(" ");
   serial.print(ADC2);
-  serial.print(", ");
+  serial.print(" ");
   serial.print(temp1);
-  serial.print(", ");  
+  serial.print(" ");  
   serial.print(temp2);
-  serial.print(", ");
+  serial.print(" ");
   serial.print(Output1);
-  serial.print(", ");
+  serial.print(" ");
   serial.println(Output2); 
-  
-  
-  
-  /*Print the temperature in Celsius to the serial port
-  Serial.print("Celsius: ");
-  Serial.println(temp_in_celsius);                  
-
-  Print the temperature in Fahrenheit to the serial port
-  Serial.print("Ouput: ");
-  Serial.println(Output);
-  Serial.println();  
-  
-  //Print the temperature in Fahrenheit to the serial port
-  Serial.print("Raw: ");
-  Serial.println(raw);
-  Serial.println(millivolts);  
-  Serial.println();   */
 }
